@@ -1,171 +1,34 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
-import type Hls from 'hls.js';
+import { useRef, useState, useEffect } from 'react';
 import { 
-  ArrowLeft, Users, Wifi, WifiOff, Settings, Volume2, VolumeX, 
-  Maximize, Minimize, Play, Pause, SkipBack, SkipForward,
-  MessageSquare, ThumbsUp, Share2, Bookmark, MoreVertical,
-  TrendingUp, Clock, Eye, Signal, Download, Cast, Radio
+  ArrowLeft, Users, Wifi, Settings, Volume2, VolumeX,
+  Maximize, Minimize, Play, Pause, Signal, Radio,
+  TrendingUp, Clock, Eye, Shield, Award, Target, Activity
 } from 'lucide-react';
 
-type QualityLevel = 'auto' | '1080p' | '720p' | '480p' | '360p';
-
-export default function LiveStreamViewer() {
-  const videoRef = useRef<HTMLVideoElement>(null);
+export default function ProfessionalLiveStreamViewer() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const hlsRef = useRef<Hls | null>(null);
-  
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [selectedQuality, setSelectedQuality] = useState<QualityLevel>('auto');
-  const [volume, setVolume] = useState(100);
-  const [viewerCount, setViewerCount] = useState("1.2M");
-  const [likes, setLikes] = useState(45200);
-  const [isLiked, setIsLiked] = useState(false);
-  const [currentTime, setCurrentTime] = useState("00:00");
-  const [showControls, setShowControls] = useState(true);
-  const [bitrate, setBitrate] = useState("5.2 Mbps");
-  const [latency] = useState("2.3s");
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // Different test stream - Sintel movie stream
-  const streamUrl = "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8";
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(80);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showControls, setShowControls] = useState(true);
+  const [quality, setQuality] = useState("1080p");
+  const [showQualityMenu, setShowQualityMenu] = useState(false);
+  const [viewerCount, setViewerCount] = useState(142835);
+  const [matchTime, setMatchTime] = useState("21:00");
+
+  const streamUrl = "https://1player.baselalsharef.com/albaplayer/bein1/?serv=0";
 
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    const loadStream = async () => {
-      try {
-        if (typeof window !== 'undefined') {
-          const Hls = (await import('hls.js')).default;
-          
-          if (Hls.isSupported()) {
-            const hls = new Hls({
-              enableWorker: true,
-              lowLatencyMode: true,
-              maxBufferLength: 30,
-              maxMaxBufferLength: 60,
-            });
-            
-            hlsRef.current = hls;
-            hls.loadSource(streamUrl);
-            hls.attachMedia(video);
-            
-            hls.on(Hls.Events.MANIFEST_PARSED, () => {
-              setIsLoading(false);
-              video.play().catch(e => console.log('Autoplay prevented:', e));
-              setIsPlaying(true);
-              
-              // Simulate viewer count updates
-              const viewerInterval = setInterval(() => {
-                const randomChange = Math.floor(Math.random() * 1000) - 500;
-                setViewerCount(prev => {
-                  const numViewers = parseFloat(prev) * 1000000 + randomChange;
-                  return (numViewers / 1000000).toFixed(1) + "M";
-                });
-              }, 5000);
-
-              return () => clearInterval(viewerInterval);
-            });
-            
-            hls.on(Hls.Events.LEVEL_SWITCHED, (_event, data) => {
-              const level = hls.levels[data.level];
-              if (level) {
-                setBitrate(`${(level.bitrate / 1000000).toFixed(1)} Mbps`);
-              }
-            });
-            
-            hls.on(Hls.Events.ERROR, (_event, data) => {
-              if (data.fatal) {
-                setHasError(true);
-                setIsLoading(false);
-                console.error('HLS Error:', data);
-              }
-            });
-            
-            return () => {
-              hls.destroy();
-            };
-          } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = streamUrl;
-            video.addEventListener('loadedmetadata', () => {
-              setIsLoading(false);
-            });
-            video.addEventListener('error', () => {
-              setHasError(true);
-              setIsLoading(false);
-            });
-          } else {
-            setHasError(true);
-            setIsLoading(false);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading stream:', error);
-        setHasError(true);
-        setIsLoading(false);
-      }
-    };
-
-    loadStream();
-
-    // Time update listener
-    const handleTimeUpdate = () => {
-      const minutes = Math.floor(video.currentTime / 60);
-      const seconds = Math.floor(video.currentTime % 60);
-      setCurrentTime(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-    };
-
-    video.addEventListener('timeupdate', handleTimeUpdate);
-
-    return () => {
-      video.removeEventListener('timeupdate', handleTimeUpdate);
-      if (hlsRef.current) {
-        hlsRef.current.destroy();
-      }
-    };
-  }, [streamUrl]);
-
-  const togglePlay = () => {
-    const video = videoRef.current;
-    if (!video) return;
-    
-    if (video.paused) {
-      video.play();
-      setIsPlaying(true);
-    } else {
-      video.pause();
-      setIsPlaying(false);
-    }
-  };
-
-  const toggleMute = () => {
-    const video = videoRef.current;
-    if (!video) return;
-    
-    video.muted = !video.muted;
-    setIsMuted(video.muted);
-  };
-
-  const handleVolumeChange = (newVolume: number) => {
-    const video = videoRef.current;
-    if (!video) return;
-    
-    setVolume(newVolume);
-    video.volume = newVolume / 100;
-    if (newVolume === 0) {
-      setIsMuted(true);
-      video.muted = true;
-    } else {
-      setIsMuted(false);
-      video.muted = false;
-    }
-  };
+    const interval = setInterval(() => {
+      setViewerCount(prev => prev + Math.floor(Math.random() * 100) - 50);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const toggleFullscreen = () => {
     const container = containerRef.current;
@@ -180,571 +43,703 @@ export default function LiveStreamViewer() {
     }
   };
 
-  const handleQualityChange = (quality: QualityLevel) => {
-    setSelectedQuality(quality);
-    const hls = hlsRef.current;
-    
-    if (hls && hls.levels) {
-      if (quality === 'auto') {
-        hls.currentLevel = -1; // Auto quality
-      } else {
-        const targetHeight = parseInt(quality);
-        const levelIndex = hls.levels.findIndex((level) => level.height === targetHeight);
-        if (levelIndex !== -1) {
-          hls.currentLevel = levelIndex;
-        }
-      }
-    }
-    setShowSettings(false);
-  };
-
-  const handleLike = () => {
-    if (isLiked) {
-      setLikes(likes - 1);
-    } else {
-      setLikes(likes + 1);
-    }
-    setIsLiked(!isLiked);
-  };
-
-  const skipTime = (seconds: number) => {
-    const video = videoRef.current;
-    if (!video) return;
-    video.currentTime += seconds;
+  const formatViewers = (num: number) => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+    return num.toString();
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0f0a]">
-      {/* Enhanced Header */}
-      <div className="bg-gradient-to-b from-slate-900/95 to-transparent backdrop-blur-xl border-b border-gray-800/50 sticky top-0 z-50">
-        <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950" dir="rtl">
+      {/* Professional Header */}
+      <div className="bg-slate-900/98 backdrop-blur-xl border-b border-slate-700/30 sticky top-0 z-50">
+        <div className="max-w-[1920px] mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-6">
               <button 
                 onClick={() => window.history.back()}
-                className="flex items-center gap-3 text-gray-300 hover:text-white transition-colors group"
+                className="flex items-center gap-3 text-slate-300 hover:text-white transition-all group"
               >
-                <div className="bg-gray-800/50 group-hover:bg-gray-700/50 rounded-lg p-2 transition-colors">
-                  <ArrowLeft className="w-5 h-5" />
+                <div className="bg-slate-800/50 group-hover:bg-slate-700/50 rounded-xl p-2.5 transition-all">
+                  <ArrowLeft className="w-5 h-5 rotate-180" />
                 </div>
-                <span className="font-semibold hidden sm:block">Back to Home</span>
               </button>
-              
-              <div className="h-8 w-px bg-gray-700"></div>
-              
+              <div className="h-10 w-px bg-slate-700/50"></div>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center">
-                  <Radio className="w-5 h-5 text-white" />
+                <div className="w-12 h-12 bg-gradient-to-br from-red-600 to-red-700 rounded-xl flex items-center justify-center shadow-lg">
+                  <Radio className="w-6 h-6 text-white" />
                 </div>
-                <div className="hidden md:block">
-                  <div className="text-sm text-gray-400">Streaming on</div>
-                  <div className="text-white font-semibold">SportsStream Premium</div>
+                <div>
+                  <div className="text-white font-bold text-lg">سبورت ستريم برو</div>
+                  <div className="text-slate-400 text-xs">بث مباشر عالي الجودة</div>
                 </div>
               </div>
             </div>
-            
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 bg-red-600/90 rounded-lg px-4 py-2">
-                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                <span className="text-white text-sm font-bold uppercase">Live</span>
+              <div className="flex items-center gap-3 bg-red-600/10 border border-red-600/30 rounded-xl px-4 py-2.5">
+                <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-lg shadow-red-500/50"></div>
+                <span className="text-red-500 text-sm font-bold">بث مباشر</span>
               </div>
-              
-              <div className="hidden sm:flex items-center gap-2 bg-slate-800/50 border border-gray-700/50 rounded-lg px-4 py-2">
+              <div className="flex items-center gap-2 bg-slate-800/50 border border-slate-700/30 rounded-xl px-4 py-2.5">
                 <Eye className="w-4 h-4 text-emerald-400" />
-                <span className="text-white font-semibold">{viewerCount}</span>
+                <span className="text-white font-bold text-sm">{formatViewers(viewerCount)}</span>
+                <span className="text-slate-400 text-xs">متفرج</span>
               </div>
-
-              <button className="hidden md:flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2 rounded-lg transition-colors">
-                <Cast className="w-4 h-4" />
-                <span>Cast</span>
-              </button>
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid lg:grid-cols-4 gap-6">
-          {/* Video Player - Takes 3 columns */}
-          <div className="lg:col-span-3">
-            {/* Enhanced Video Player */}
-            <div 
-              ref={containerRef}
-              className="relative bg-gradient-to-br from-slate-900/90 to-gray-900/90 rounded-2xl overflow-hidden border border-gray-800/50 shadow-2xl"
-              onMouseEnter={() => setShowControls(true)}
-              onMouseLeave={() => setShowControls(false)}
-            >
-              {/* Stream Info Bar */}
-              <div className="bg-slate-900/50 backdrop-blur-sm border-b border-gray-800/50 px-6 py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 bg-emerald-950/50 border border-emerald-800/30 rounded-lg px-3 py-1.5">
-                      <span className="text-emerald-400 text-sm font-bold uppercase">UEFA Champions League</span>
-                    </div>
-                    <h1 className="text-xl md:text-2xl font-bold text-white">Real Madrid vs Barcelona</h1>
+      <div className="max-w-[1920px] mx-auto px-6 py-8">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Video Player - Larger Section */}
+          <div className="lg:col-span-2">
+            {/* Team Headers with Logos */}
+            <div className="bg-gradient-to-r from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-2xl border border-slate-700/30 p-6 mb-6 shadow-2xl">
+              <div className="flex items-center justify-between">
+                {/* PSG */}
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-900 to-red-800 rounded-2xl flex items-center justify-center shadow-xl p-3">
+                    <svg viewBox="0 0 200 200" className="w-full h-full">
+                      <circle cx="100" cy="100" r="90" fill="#004170"/>
+                      <path d="M100 30 L130 70 L170 70 L140 100 L160 140 L100 110 L40 140 L60 100 L30 70 L70 70 Z" fill="#E30613"/>
+                      <circle cx="100" cy="100" r="25" fill="white"/>
+                    </svg>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="hidden sm:flex items-center gap-2 bg-slate-800/50 border border-gray-700/50 rounded-lg px-3 py-1.5">
-                      <Signal className="w-4 h-4 text-emerald-400" />
-                      <span className="text-xs text-gray-300 font-medium">{bitrate}</span>
-                    </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">باريس سان جيرمان</h2>
+                    <p className="text-slate-400 text-sm">فرنسا • البطل الحالي</p>
                   </div>
                 </div>
-              </div>
 
-              {/* Video Container with Advanced Controls */}
-              <div className="relative aspect-video bg-black group">
-                {isLoading && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-20">
-                    <div className="relative">
-                      <div className="w-20 h-20 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mb-4"></div>
-                      <div className="absolute inset-0 w-20 h-20 border-4 border-green-500/20 border-b-green-500 rounded-full animate-spin animation-delay-150"></div>
-                    </div>
-                    <p className="text-gray-400 font-semibold text-lg">Connecting to stream...</p>
-                    <p className="text-gray-600 text-sm mt-2">Optimizing quality for your connection</p>
+                {/* VS & Time */}
+                <div className="text-center px-8">
+                  <div className="bg-slate-800/50 border border-slate-700/30 rounded-xl px-6 py-3 mb-2">
+                    <span className="text-4xl font-bold text-white">VS</span>
                   </div>
-                )}
-
-                {hasError && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-20">
-                    <WifiOff className="w-20 h-20 text-red-500 mb-4" />
-                    <p className="text-red-400 text-xl font-semibold mb-2">Unable to load stream</p>
-                    <p className="text-gray-500 text-sm mb-4">Please check your connection and try again</p>
-                    <button 
-                      onClick={() => window.location.reload()}
-                      className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-6 py-2 rounded-lg transition-colors"
-                    >
-                      Retry Connection
-                    </button>
-                  </div>
-                )}
-
-                <video
-                  ref={videoRef}
-                  className="w-full h-full"
-                  playsInline
-                />
-
-                {/* Custom Video Controls Overlay */}
-                <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 transition-opacity duration-300 ${showControls || !isPlaying ? 'opacity-100' : 'opacity-0'} z-10`}>
-                  {/* Top Controls */}
-                  <div className="absolute top-0 left-0 right-0 p-6 flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-red-600/90 backdrop-blur-sm rounded-lg px-3 py-1.5 flex items-center gap-2">
-                        <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                        <span className="text-white text-xs font-bold uppercase">Live</span>
-                      </div>
-                      <div className="bg-black/50 backdrop-blur-sm rounded-lg px-3 py-1.5">
-                        <span className="text-white text-xs font-semibold">{currentTime}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="bg-black/50 backdrop-blur-sm rounded-lg px-3 py-1.5 flex items-center gap-2">
-                        <Users className="w-4 h-4 text-emerald-400" />
-                        <span className="text-white text-xs font-semibold">{viewerCount}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Center Play Button */}
-                  {!isPlaying && !isLoading && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <button
-                        onClick={togglePlay}
-                        className="bg-emerald-600/90 backdrop-blur-sm hover:bg-emerald-500 text-white rounded-full p-6 transition-all hover:scale-110 shadow-2xl"
-                      >
-                        <Play className="w-12 h-12" fill="currentColor" />
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Bottom Controls */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6">
-                    <div className="space-y-3">
-                      {/* Progress Bar */}
-                      <div className="w-full h-1 bg-gray-700/50 rounded-full overflow-hidden backdrop-blur-sm">
-                        <div className="h-full bg-gradient-to-r from-emerald-500 to-green-500" style={{ width: '45%' }}></div>
-                      </div>
-
-                      {/* Control Buttons */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          {/* Play/Pause */}
-                          <button
-                            onClick={togglePlay}
-                            className="text-white hover:text-emerald-400 transition-colors"
-                          >
-                            {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" fill="currentColor" />}
-                          </button>
-
-                          {/* Skip Buttons */}
-                          <button
-                            onClick={() => skipTime(-10)}
-                            className="text-white hover:text-emerald-400 transition-colors"
-                          >
-                            <SkipBack className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => skipTime(10)}
-                            className="text-white hover:text-emerald-400 transition-colors"
-                          >
-                            <SkipForward className="w-5 h-5" />
-                          </button>
-
-                          {/* Volume Controls */}
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={toggleMute}
-                              className="text-white hover:text-emerald-400 transition-colors"
-                            >
-                              {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-                            </button>
-                            <input
-                              type="range"
-                              min="0"
-                              max="100"
-                              value={volume}
-                              onChange={(e) => handleVolumeChange(Number(e.target.value))}
-                              className="w-20 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-500"
-                            />
-                          </div>
-
-                          {/* Quality Badge */}
-                          <div className="hidden sm:block bg-black/50 backdrop-blur-sm rounded px-2 py-1">
-                            <span className="text-emerald-400 text-xs font-bold">{selectedQuality === 'auto' ? 'AUTO' : selectedQuality}</span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                          {/* Settings Button with Dropdown */}
-                          <div className="relative">
-                            <button
-                              onClick={() => setShowSettings(!showSettings)}
-                              className="text-white hover:text-emerald-400 transition-colors"
-                            >
-                              <Settings className="w-5 h-5" />
-                            </button>
-
-                            {/* Quality Settings Dropdown */}
-                            {showSettings && (
-                              <div className="absolute bottom-full right-0 mb-2 bg-slate-900/95 backdrop-blur-xl border border-gray-700 rounded-xl p-3 min-w-[200px] shadow-2xl">
-                                <div className="text-white font-semibold text-sm mb-3 px-2">Quality Settings</div>
-                                <div className="space-y-1">
-                                  {(['auto', '1080p', '720p', '480p', '360p'] as QualityLevel[]).map((quality) => (
-                                    <button
-                                      key={quality}
-                                      onClick={() => handleQualityChange(quality)}
-                                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                                        selectedQuality === quality
-                                          ? 'bg-emerald-600 text-white font-semibold'
-                                          : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                                      }`}
-                                    >
-                                      <div className="flex items-center justify-between">
-                                        <span>{quality === 'auto' ? 'Auto (Recommended)' : quality}</span>
-                                        {selectedQuality === quality && (
-                                          <div className="w-2 h-2 bg-white rounded-full"></div>
-                                        )}
-                                      </div>
-                                      {quality === 'auto' && (
-                                        <div className="text-xs text-emerald-300 mt-1">Adapts to your connection</div>
-                                      )}
-                                    </button>
-                                  ))}
-                                </div>
-                                <div className="mt-3 pt-3 border-t border-gray-700">
-                                  <div className="flex items-center justify-between text-xs text-gray-400 px-2">
-                                    <span>Current: {bitrate}</span>
-                                    <span>Latency: {latency}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Fullscreen Button */}
-                          <button
-                            onClick={toggleFullscreen}
-                            className="text-white hover:text-emerald-400 transition-colors"
-                          >
-                            {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                  <div className="flex items-center justify-center gap-2 text-emerald-400">
+                    <Clock className="w-4 h-4" />
+                    <span className="text-sm font-bold">{matchTime}</span>
                   </div>
                 </div>
-              </div>
 
-              {/* Stream Stats Bar */}
-              <div className="bg-slate-900/50 backdrop-blur-sm px-6 py-4 border-t border-gray-800/50">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-6 text-sm">
-                    <div className="flex items-center gap-2 text-gray-300">
-                      <Wifi className="w-4 h-4 text-emerald-400" />
-                      <span className="font-medium">HD Quality</span>
-                    </div>
-                    <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
-                    <div className="flex items-center gap-2 text-gray-300">
-                      <Clock className="w-4 h-4 text-emerald-400" />
-                      <span>20:45 GMT</span>
-                    </div>
-                    <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
-                    <div className="flex items-center gap-2 text-gray-300">
-                      <TrendingUp className="w-4 h-4 text-emerald-400" />
-                      <span>Trending #1</span>
-                    </div>
+                {/* Bayern Munich */}
+                <div className="flex items-center gap-4">
+                  <div>
+                    <h2 className="text-2xl font-bold text-white text-left">بايرن ميونخ</h2>
+                    <p className="text-slate-400 text-sm text-left">ألمانيا • البافاري</p>
                   </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={handleLike}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
-                        isLiked
-                          ? 'bg-emerald-600 text-white'
-                          : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50'
-                      }`}
-                    >
-                      <ThumbsUp className="w-4 h-4" fill={isLiked ? 'currentColor' : 'none'} />
-                      <span className="text-sm">{(likes / 1000).toFixed(1)}K</span>
-                    </button>
-                    
-                    <button className="flex items-center gap-2 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 px-4 py-2 rounded-lg font-semibold transition-colors">
-                      <Share2 className="w-4 h-4" />
-                      <span className="text-sm hidden sm:inline">Share</span>
-                    </button>
-                    
-                    <button className="bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 p-2 rounded-lg transition-colors">
-                      <Bookmark className="w-4 h-4" />
-                    </button>
-                    
-                    <button className="bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 p-2 rounded-lg transition-colors">
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
+                  <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center shadow-xl p-2">
+                    <svg viewBox="0 0 200 200" className="w-full h-full">
+                      <circle cx="100" cy="100" r="90" fill="#DC052D"/>
+                      <circle cx="100" cy="100" r="70" fill="white"/>
+                      <circle cx="70" cy="80" r="20" fill="#0066B2"/>
+                      <circle cx="130" cy="80" r="20" fill="#0066B2"/>
+                      <circle cx="100" cy="120" r="20" fill="#0066B2"/>
+                      <circle cx="85" cy="100" r="15" fill="#0066B2"/>
+                      <circle cx="115" cy="100" r="15" fill="#0066B2"/>
+                    </svg>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Match Information */}
-            <div className="mt-6 grid md:grid-cols-2 gap-6">
-              {/* Description */}
-              <div className="bg-gradient-to-br from-slate-900/70 to-gray-900/70 rounded-2xl border border-gray-800/50 p-6">
-                <h2 className="text-xl font-bold text-white mb-3 flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5 text-emerald-400" />
-                  Match Details
-                </h2>
-                <p className="text-gray-400 leading-relaxed mb-4">
-                  Experience the ultimate football rivalry as Real Madrid takes on Barcelona in this historic UEFA Champions League clash. 
-                  Watch every moment in stunning 4K quality with expert commentary and real-time statistics.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <span className="bg-emerald-950/50 border border-emerald-800/30 text-emerald-400 text-xs font-semibold px-3 py-1.5 rounded-lg">
-                    Football
-                  </span>
-                  <span className="bg-emerald-950/50 border border-emerald-800/30 text-emerald-400 text-xs font-semibold px-3 py-1.5 rounded-lg">
-                    UEFA Champions League
-                  </span>
-                  <span className="bg-emerald-950/50 border border-emerald-800/30 text-emerald-400 text-xs font-semibold px-3 py-1.5 rounded-lg">
-                    4K HDR
-                  </span>
-                  <span className="bg-amber-950/50 border border-amber-800/30 text-amber-400 text-xs font-semibold px-3 py-1.5 rounded-lg">
-                    Premium
-                  </span>
+            {/* Video Player */}
+            <div 
+              ref={containerRef}
+              className="relative bg-black rounded-2xl overflow-hidden border border-slate-700/30 shadow-2xl"
+              onMouseEnter={() => setShowControls(true)}
+              onMouseLeave={() => setShowControls(false)}
+            >
+              <div className="relative aspect-video">
+                <iframe
+                  ref={iframeRef}
+                  src={streamUrl}
+                  className="w-full h-full"
+                  allowFullScreen
+                  frameBorder="0"
+                  scrolling="no"
+                  title="Live Stream"
+                  allow="autoplay; fullscreen"
+                />
+                <div 
+                  className="absolute inset-0 pointer-events-auto"
+                  style={{ background: 'transparent' }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowControls(!showControls);
+                  }}
+                />
+                
+                {/* Controls Overlay */}
+                <div className={`absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/60 transition-opacity duration-300 pointer-events-none ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+                  {/* Top Info Bar */}
+                  <div className="absolute top-0 left-0 right-0 p-6 flex items-center justify-between pointer-events-auto">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-red-600/90 backdrop-blur-md rounded-lg px-4 py-2 flex items-center gap-2 border border-red-500/30">
+                        <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                        <span className="text-white text-sm font-bold">مباشر</span>
+                      </div>
+                      <div className="bg-black/60 backdrop-blur-md rounded-lg px-4 py-2 border border-slate-600/30">
+                        <span className="text-white text-sm font-bold">دوري أبطال أوروبا</span>
+                      </div>
+                    </div>
+                    <div className="bg-black/60 backdrop-blur-md rounded-lg px-4 py-2 flex items-center gap-2 border border-slate-600/30">
+                      <Users className="w-4 h-4 text-emerald-400" />
+                      <span className="text-white text-sm font-bold">{formatViewers(viewerCount)}</span>
+                    </div>
+                  </div>
+
+                  {/* Bottom Controls */}
+                  <div className="absolute bottom-0 left-0 right-0 p-6 pointer-events-auto">
+                    <div className="bg-black/90 backdrop-blur-xl rounded-2xl p-5 border border-slate-600/30">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const iframe = iframeRef.current;
+                              if (iframe) {
+                                if (isPlaying) {
+                                  iframe.style.display = 'none';
+                                  setIsPlaying(false);
+                                } else {
+                                  iframe.style.display = 'block';
+                                  iframe.src = iframe.src;
+                                  setIsPlaying(true);
+                                }
+                              }
+                            }}
+                            className="text-white hover:text-emerald-400 transition-all hover:scale-110"
+                          >
+                            {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" fill="currentColor" />}
+                          </button>
+
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setIsMuted(!isMuted);
+                                setVolume(isMuted ? 80 : 0);
+                              }}
+                              className="text-white hover:text-emerald-400 transition-all hover:scale-110"
+                            >
+                              {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+                            </button>
+                            
+                            <div className="flex items-center gap-3 bg-white/5 rounded-lg px-4 py-2">
+                              <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                value={volume}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  const newVolume = Number(e.target.value);
+                                  setVolume(newVolume);
+                                  setIsMuted(newVolume === 0);
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-24 h-2 bg-slate-600/50 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-500 [&::-webkit-slider-thumb]:cursor-pointer"
+                              />
+                              <span className="text-white text-sm font-bold min-w-[3rem]">{volume}%</span>
+                            </div>
+                          </div>
+
+                          <div className="relative">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowQualityMenu(!showQualityMenu);
+                              }}
+                              className="flex items-center gap-2 bg-slate-800/50 border border-slate-700/30 rounded-lg px-4 py-2 text-emerald-400 text-sm font-bold hover:bg-slate-700/50 transition-all"
+                            >
+                              <Signal className="w-4 h-4" />
+                              <span>{quality}</span>
+                            </button>
+                            
+                            {showQualityMenu && (
+                              <div className="absolute bottom-full mb-2 left-0 bg-black/95 backdrop-blur-xl rounded-xl border border-slate-600/50 overflow-hidden min-w-[150px] z-50">
+                                {['1080p', '720p', '480p', '360p', 'تلقائي'].map((q) => (
+                                  <button
+                                    key={q}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setQuality(q);
+                                      setShowQualityMenu(false);
+                                    }}
+                                    className={`w-full text-right px-4 py-3 text-sm font-bold transition-all ${
+                                      quality === q ? 'bg-emerald-600 text-white' : 'text-slate-300 hover:bg-slate-800'
+                                    }`}
+                                  >
+                                    {q}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                            className="text-white hover:text-emerald-400 transition-all hover:scale-110"
+                          >
+                            <Settings className="w-6 h-6" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFullscreen();
+                            }}
+                            className="text-white hover:text-emerald-400 transition-all hover:scale-110"
+                          >
+                            {isFullscreen ? <Minimize className="w-6 h-6" /> : <Maximize className="w-6 h-6" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Progress Bar */}
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-red-500 via-red-600 to-emerald-500 w-full"></div>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-slate-300 font-medium">
+                          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                          <span>مباشر</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
+            </div>
 
-              {/* Live Stats */}
-              <div className="bg-gradient-to-br from-slate-900/70 to-gray-900/70 rounded-2xl border border-gray-800/50 p-6">
-                <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-emerald-400" />
-                  Live Statistics
-                </h2>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-400 text-sm">Current Viewers</span>
-                    <span className="text-white font-bold">{viewerCount}</span>
+            {/* Stream Quality Bar */}
+            <div className="bg-slate-900/60 backdrop-blur-sm rounded-2xl mt-4 px-6 py-4 border border-slate-700/30">
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2 text-slate-300">
+                    <Wifi className="w-4 h-4 text-emerald-400" />
+                    <span className="font-bold">جودة {quality}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-400 text-sm">Peak Viewers</span>
-                    <span className="text-white font-bold">2.8M</span>
+                  <div className="w-1 h-1 bg-slate-600 rounded-full"></div>
+                  <div className="flex items-center gap-2 text-slate-300">
+                    <Signal className="w-4 h-4 text-emerald-400" />
+                    <span className="font-medium">اتصال مستقر</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-400 text-sm">Stream Quality</span>
-                    <span className="text-emerald-400 font-bold">{selectedQuality === 'auto' ? 'AUTO' : selectedQuality}</span>
+                  <div className="w-1 h-1 bg-slate-600 rounded-full"></div>
+                  <div className="flex items-center gap-2 text-slate-300">
+                    <Activity className="w-4 h-4 text-emerald-400" />
+                    <span className="font-medium">تأخير منخفض</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-400 text-sm">Bitrate</span>
-                    <span className="text-white font-bold">{bitrate}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Match Analysis */}
+            <div className="bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl rounded-2xl border border-slate-700/30 p-8 mt-6 shadow-2xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-emerald-600/20 rounded-xl flex items-center justify-center">
+                  <Award className="w-5 h-5 text-emerald-400" />
+                </div>
+                <h2 className="text-2xl font-bold text-white">تحليل المباراة</h2>
+              </div>
+              
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-xl font-bold text-emerald-400 mb-3">قمة أوروبية في حديقة الأمراء</h3>
+                  <p className="text-slate-300 leading-relaxed text-base">
+                    يستضيف ملعب حديقة الأمراء الأسطوري مواجهة نارية بين بطل دوري الأبطال الحالي باريس سان جيرمان وبايرن ميونخ الألماني في الجولة الرابعة من مرحلة المجموعات. الفريقان يتصدران ترتيب المجموعة برصيد 9 نقاط لكل منهما بعد 3 انتصارات متتالية، مما يجعل هذه المباراة حاسمة لتحديد الصدارة. بايرن ميونخ يدخل المباراة بسلسلة انتصارات مذهلة وصلت إلى 15 مباراة متتالية في جميع المسابقات، وهو رقم قياسي لأي فريق في الدوريات الأوروبية الخمسة الكبرى.
+                  </p>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="bg-slate-800/40 rounded-xl p-5 border border-slate-700/30">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Shield className="w-5 h-5 text-blue-400" />
+                      <h4 className="text-lg font-bold text-white">باريس سان جيرمان - البطل</h4>
+                    </div>
+                    <p className="text-slate-300 text-sm leading-relaxed mb-3">
+                      البطل الحالي لدوري الأبطال يسعى للانتقام من بايرن بعد خسارته أمامه في ربع نهائي كأس العالم للأندية الصيف الماضي. لويس إنريكي يعتمد على ثلاثي الهجوم الديناميكي كفاراتسخيليا، مايولو، وباركولا. أوسمان ديمبيلي جاهز للمشاركة بعد تعافيه من الإصابة. الفريق سجل 13 هدفاً في 3 مباريات بدوري الأبطال، أكثر من أي فريق آخر، ويمتلك دفاعاً قوياً بقيادة ماركينيوس وباتشو.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="bg-blue-950/60 text-blue-400 text-xs font-bold px-3 py-1 rounded-lg">الهجوم الساحق</span>
+                      <span className="bg-blue-950/60 text-blue-400 text-xs font-bold px-3 py-1 rounded-lg">الاستحواذ العالي</span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-400 text-sm">Latency</span>
-                    <span className="text-white font-bold">{latency}</span>
+
+                  <div className="bg-slate-800/40 rounded-xl p-5 border border-slate-700/30">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Shield className="w-5 h-5 text-red-400" />
+                      <h4 className="text-lg font-bold text-white">بايرن ميونخ - البافاري</h4>
+                    </div>
+                    <p className="text-slate-300 text-sm leading-relaxed mb-3">
+                      الآلة البافارية لا تقهر هذا الموسم بقيادة فينسنت كومباني. فازوا بجميع مباريا تهم الـ15 في الموسم الحالي، وسجلوا 54 هدفاً، أكثر من أي فريق أوروبي. هاري كين في قمة عطائه برصيد 22 هدفاً في 15 مباراة، بينما يساهم لويس دياز وسيرج جنابري ومايكل أوليسيه في تشكيل خط هجوم مرعب. تاريخياً، بايرن فاز في 4 مواجهات متتالية أمام باريس في دوري الأبطال.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="bg-red-950/60 text-red-400 text-xs font-bold px-3 py-1 rounded-lg">القوة الهجومية</span>
+                      <span className="bg-red-950/60 text-red-400 text-xs font-bold px-3 py-1 rounded-lg">الانتصارات المتتالية</span>
+                    </div>
                   </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-emerald-950/40 to-blue-950/40 rounded-xl p-5 border border-emerald-700/30">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Target className="w-5 h-5 text-emerald-400" />
+                    <h4 className="text-lg font-bold text-white">النقاط الرئيسية</h4>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4 text-sm">
+                    <div className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full mt-2"></div>
+                      <p className="text-slate-300"><span className="font-bold text-white">المواجهات المباشرة:</span> فاز بايرن في 8 مباريات من أصل 14 لقاء في دوري الأبطال، وخسر باريس 4 مباريات متتالية أمامهم</p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full mt-2"></div>
+                      <p className="text-slate-300"><span className="font-bold text-white">آخر مواجهة:</span> كأس العالم للأندية في يوليو 2025، فاز باريس 2-0 وهي آخر خسارة لبايرن حتى الآن</p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full mt-2"></div>
+                      <p className="text-slate-300"><span className="font-bold text-white">الأهمية التكتيكية:</span> لويس إنريكي (4-3-3) ضد فينسنت كومباني الذي حول بايرن لآلة هجومية لا تتوقف</p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full mt-2"></div>
+                      <p className="text-slate-300"><span className="font-bold text-white">النجوم البارزة:</span> هاري كين (22 هدفاً) ضد كفاراتسخيليا وديمبيلي - معركة الأهداف والإبداع</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <span className="bg-red-950/40 border border-red-700/30 text-red-400 text-xs font-bold px-4 py-2 rounded-lg">
+                    🏆 دوري أبطال أوروبا
+                  </span>
+                  <span className="bg-emerald-950/40 border border-emerald-700/30 text-emerald-400 text-xs font-bold px-4 py-2 rounded-lg">
+                    ⚽ حديقة الأمراء
+                  </span>
+                  <span className="bg-blue-950/40 border border-blue-700/30 text-blue-400 text-xs font-bold px-4 py-2 rounded-lg">
+                    🔵 البطل الحالي
+                  </span>
+                  <span className="bg-purple-950/40 border border-purple-700/30 text-purple-400 text-xs font-bold px-4 py-2 rounded-lg">
+                    🔴 البافاري
+                  </span>
+                  <span className="bg-amber-950/40 border border-amber-700/30 text-amber-400 text-xs font-bold px-4 py-2 rounded-lg">
+                    ⭐ المتصدران
+                  </span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Sidebar - Takes 1 column */}
+          {/* Professional Sidebar */}
           <div className="lg:col-span-1 space-y-6">
-            {/* Live Chat */}
-            <div className="bg-gradient-to-br from-slate-900/70 to-gray-900/70 rounded-2xl border border-gray-800/50 p-6 sticky top-24">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5 text-emerald-400" />
-                  Live Chat
-                </h3>
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                  <span className="text-xs text-gray-400">24.5K online</span>
+            {/* Match Statistics */}
+            <div className="bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl rounded-2xl border border-slate-700/30 p-6 shadow-2xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-emerald-600/20 rounded-xl flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-emerald-400" />
                 </div>
+                <h3 className="text-lg font-bold text-white">إحصائيات المباراة</h3>
               </div>
-              
-              <div className="bg-slate-950/50 rounded-xl p-4 min-h-[500px] max-h-[500px] overflow-y-auto space-y-3">
-                {/* Sample Chat Messages */}
-                <div className="flex items-start gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-xs font-bold">JD</span>
+              <div className="space-y-4">
+                <div className="bg-slate-800/40 rounded-xl p-4 border border-slate-700/30">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-slate-400 text-sm">المشاهدون الحاليون</span>
+                    <span className="text-white font-bold text-lg">{formatViewers(viewerCount)}</span>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-white text-sm font-semibold">JohnDoe</span>
-                      <span className="text-xs text-gray-500">2m ago</span>
-                    </div>
-                    <p className="text-gray-300 text-sm">What a goal! 🔥</p>
+                  <div className="w-full h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 w-3/4"></div>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-green-500 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-xs font-bold">SF</span>
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center justify-between py-2 border-b border-slate-700/30">
+                    <span className="text-slate-400">البطولة</span>
+                    <span className="text-white font-bold">دوري أبطال أوروبا</span>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-white text-sm font-semibold">SportsFan</span>
-                      <span className="text-xs text-gray-500">3m ago</span>
-                    </div>
-                    <p className="text-gray-300 text-sm">Best match of the season!</p>
+                  <div className="flex items-center justify-between py-2 border-b border-slate-700/30">
+                    <span className="text-slate-400">المرحلة</span>
+                    <span className="text-white font-bold">الجولة 4 - المجموعات</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-slate-700/30">
+                    <span className="text-slate-400">الملعب</span>
+                    <span className="text-white font-bold">حديقة الأمراء</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-slate-700/30">
+                    <span className="text-slate-400">السعة</span>
+                    <span className="text-white font-bold">48,583 متفرج</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-slate-700/30">
+                    <span className="text-slate-400">جودة البث</span>
+                    <span className="text-emerald-400 font-bold">{quality}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b border-slate-700/30">
+                    <span className="text-slate-400">المعلق</span>
+                    <span className="text-white font-bold">عصام الشوالي</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-slate-400">الحالة</span>
+                    <span className="text-emerald-400 font-bold flex items-center gap-2">
+                      <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                      مباشر الآن
+                    </span>
                   </div>
                 </div>
-
-                <div className="flex items-start gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-xs font-bold">MB</span>
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-white text-sm font-semibold">MadridBarca</span>
-                      <span className="text-xs text-gray-500">5m ago</span>
-                    </div>
-                    <p className="text-gray-300 text-sm">Stream quality is amazing! 👍</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-center py-8">
-                  <p className="text-gray-500 text-sm text-center">
-                    Chat will be available soon<br/>
-                    <span className="text-xs">Join the conversation with millions of fans</span>
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <input
-                  type="text"
-                  placeholder="Send a message..."
-                  disabled
-                  className="w-full bg-slate-950/50 border border-gray-700/50 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                />
               </div>
             </div>
 
-            {/* Quick Actions */}
-            <div className="bg-gradient-to-br from-slate-900/70 to-gray-900/70 rounded-2xl border border-gray-800/50 p-6">
-              <h3 className="text-lg font-bold text-white mb-4">Quick Actions</h3>
-              <div className="space-y-3">
-                <button className="w-full flex items-center gap-3 bg-slate-800/50 hover:bg-slate-700/50 text-white px-4 py-3 rounded-lg transition-colors">
-                  <Download className="w-5 h-5 text-emerald-400" />
-                  <span className="font-semibold">Download Highlights</span>
-                </button>
-                <button className="w-full flex items-center gap-3 bg-slate-800/50 hover:bg-slate-700/50 text-white px-4 py-3 rounded-lg transition-colors">
-                  <Share2 className="w-5 h-5 text-emerald-400" />
-                  <span className="font-semibold">Share Stream</span>
-                </button>
-                <button className="w-full flex items-center gap-3 bg-slate-800/50 hover:bg-slate-700/50 text-white px-4 py-3 rounded-lg transition-colors">
-                  <Bookmark className="w-5 h-5 text-emerald-400" />
-                  <span className="font-semibold">Save to Favorites</span>
-                </button>
+            {/* Team Form */}
+            <div className="bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl rounded-2xl border border-slate-700/30 p-6 shadow-2xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-blue-600/20 rounded-xl flex items-center justify-center">
+                  <Activity className="w-5 h-5 text-blue-400" />
+                </div>
+                <h3 className="text-lg font-bold text-white">آخر 5 مباريات</h3>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-900 to-red-800 rounded-lg flex items-center justify-center p-1">
+                      <svg viewBox="0 0 200 200" className="w-full h-full">
+                        <circle cx="100" cy="100" r="90" fill="#004170"/>
+                        <path d="M100 30 L130 70 L170 70 L140 100 L160 140 L100 110 L40 140 L60 100 L30 70 L70 70 Z" fill="#E30613"/>
+                      </svg>
+                    </div>
+                    <span className="text-white font-bold text-sm">باريس سان جيرمان</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="flex-1 bg-emerald-600/20 border border-emerald-600/30 rounded-lg py-2 text-center">
+                      <span className="text-emerald-400 font-bold text-xs">فوز</span>
+                    </div>
+                    <div className="flex-1 bg-emerald-600/20 border border-emerald-600/30 rounded-lg py-2 text-center">
+                      <span className="text-emerald-400 font-bold text-xs">فوز</span>
+                    </div>
+                    <div className="flex-1 bg-emerald-600/20 border border-emerald-600/30 rounded-lg py-2 text-center">
+                      <span className="text-emerald-400 font-bold text-xs">فوز</span>
+                    </div>
+                    <div className="flex-1 bg-emerald-600/20 border border-emerald-600/30 rounded-lg py-2 text-center">
+                      <span className="text-emerald-400 font-bold text-xs">فوز</span>
+                    </div>
+                    <div className="flex-1 bg-slate-600/20 border border-slate-600/30 rounded-lg py-2 text-center">
+                      <span className="text-slate-400 font-bold text-xs">تعادل</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="h-px bg-slate-700/30"></div>
+
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center p-1">
+                      <svg viewBox="0 0 200 200" className="w-full h-full">
+                        <circle cx="100" cy="100" r="90" fill="#DC052D"/>
+                        <circle cx="100" cy="100" r="70" fill="white"/>
+                        <circle cx="70" cy="80" r="20" fill="#0066B2"/>
+                        <circle cx="130" cy="80" r="20" fill="#0066B2"/>
+                        <circle cx="100" cy="120" r="20" fill="#0066B2"/>
+                      </svg>
+                    </div>
+                    <span className="text-white font-bold text-sm">بايرن ميونخ</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="flex-1 bg-emerald-600/20 border border-emerald-600/30 rounded-lg py-2 text-center">
+                      <span className="text-emerald-400 font-bold text-xs">فوز</span>
+                    </div>
+                    <div className="flex-1 bg-emerald-600/20 border border-emerald-600/30 rounded-lg py-2 text-center">
+                      <span className="text-emerald-400 font-bold text-xs">فوز</span>
+                    </div>
+                    <div className="flex-1 bg-emerald-600/20 border border-emerald-600/30 rounded-lg py-2 text-center">
+                      <span className="text-emerald-400 font-bold text-xs">فوز</span>
+                    </div>
+                    <div className="flex-1 bg-emerald-600/20 border border-emerald-600/30 rounded-lg py-2 text-center">
+                      <span className="text-emerald-400 font-bold text-xs">فوز</span>
+                    </div>
+                    <div className="flex-1 bg-emerald-600/20 border border-emerald-600/30 rounded-lg py-2 text-center">
+                      <span className="text-emerald-400 font-bold text-xs">فوز</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Related Streams */}
-            <div className="bg-gradient-to-br from-slate-900/70 to-gray-900/70 rounded-2xl border border-gray-800/50 p-6">
-              <h3 className="text-lg font-bold text-white mb-4">Related Streams</h3>
-              <div className="space-y-3">
-                <button className="block group w-full text-left">
-                  <div className="relative aspect-video rounded-lg overflow-hidden mb-2">
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-gray-900"></div>
-                    <div className="absolute top-2 left-2 bg-red-600/90 backdrop-blur-sm rounded px-2 py-1 text-xs font-bold text-white">
-                      LIVE
-                    </div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Play className="w-10 h-10 text-white/50" />
-                    </div>
-                  </div>
-                  <h4 className="text-white text-sm font-semibold group-hover:text-emerald-400 transition-colors">
-                    Team A vs Team B
-                  </h4>
-                  <p className="text-gray-400 text-xs">Premier League • 500K viewers</p>
-                </button>
+            {/* Key Players */}
+            <div className="bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl rounded-2xl border border-slate-700/30 p-6 shadow-2xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-amber-600/20 rounded-xl flex items-center justify-center">
+                  <Award className="w-5 h-5 text-amber-400" />
+                </div>
+                <h3 className="text-lg font-bold text-white">اللاعبون الأساسيون</h3>
+              </div>
 
-                <div className="block">
-                  <div className="relative aspect-video rounded-lg overflow-hidden mb-2">
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-gray-900"></div>
-                    <div className="absolute top-2 left-2 bg-gray-600/90 backdrop-blur-sm rounded px-2 py-1 text-xs font-bold text-white">
-                      UPCOMING
+              <div className="space-y-4">
+                <div className="bg-slate-800/40 rounded-xl p-4 border border-slate-700/30">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-900 to-red-800 rounded-lg flex items-center justify-center p-1.5">
+                      <svg viewBox="0 0 200 200" className="w-full h-full">
+                        <circle cx="100" cy="100" r="90" fill="#004170"/>
+                        <circle cx="100" cy="100" r="40" fill="#E30613"/>
+                      </svg>
                     </div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Clock className="w-10 h-10 text-white/50" />
+                    <div className="flex-1">
+                      <div className="text-white font-bold text-sm">خفيشا كفاراتسخيليا</div>
+                      <div className="text-slate-400 text-xs">جناح أيسر - باريس</div>
                     </div>
                   </div>
-                  <h4 className="text-white text-sm font-semibold">
-                    Lakers vs Bulls
-                  </h4>
-                  <p className="text-gray-400 text-xs">NBA Finals • Starts in 2h</p>
+                  <div className="flex gap-3 text-xs">
+                    <div className="flex items-center gap-1">
+                      <span className="text-slate-400">أهداف:</span>
+                      <span className="text-white font-bold">11</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-slate-400">تمريرات:</span>
+                      <span className="text-white font-bold">7</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-800/40 rounded-xl p-4 border border-slate-700/30">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-900 to-red-800 rounded-lg flex items-center justify-center p-1.5">
+                      <svg viewBox="0 0 200 200" className="w-full h-full">
+                        <circle cx="100" cy="100" r="90" fill="#004170"/>
+                        <circle cx="100" cy="100" r="40" fill="#E30613"/>
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-white font-bold text-sm">أوسمان ديمبيلي</div>
+                      <div className="text-slate-400 text-xs">جناح أيمن - باريس</div>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 text-xs">
+                    <div className="flex items-center gap-1">
+                      <span className="text-slate-400">أهداف:</span>
+                      <span className="text-white font-bold">8</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-slate-400">تمريرات:</span>
+                      <span className="text-white font-bold">9</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-800/40 rounded-xl p-4 border border-slate-700/30">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center p-1.5">
+                      <svg viewBox="0 0 200 200" className="w-full h-full">
+                        <circle cx="100" cy="100" r="90" fill="#DC052D"/>
+                        <circle cx="100" cy="100" r="40" fill="#0066B2"/>
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-white font-bold text-sm">هاري كين</div>
+                      <div className="text-slate-400 text-xs">مهاجم - بايرن</div>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 text-xs">
+                    <div className="flex items-center gap-1">
+                      <span className="text-slate-400">أهداف:</span>
+                      <span className="text-white font-bold">22</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-slate-400">تمريرات:</span>
+                      <span className="text-white font-bold">11</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-800/40 rounded-xl p-4 border border-slate-700/30">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center p-1.5">
+                      <svg viewBox="0 0 200 200" className="w-full h-full">
+                        <circle cx="100" cy="100" r="90" fill="#DC052D"/>
+                        <circle cx="100" cy="100" r="40" fill="#0066B2"/>
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-white font-bold text-sm">مايكل أوليسيه</div>
+                      <div className="text-slate-400 text-xs">جناح - بايرن</div>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 text-xs">
+                    <div className="flex items-center gap-1">
+                      <span className="text-slate-400">أهداف:</span>
+                      <span className="text-white font-bold">9</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-slate-400">تمريرات:</span>
+                      <span className="text-white font-bold">8</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Match Prediction */}
+            <div className="bg-gradient-to-br from-slate-900/95 to-slate-800/95 backdrop-blur-xl rounded-2xl border border-slate-700/30 p-6 shadow-2xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-purple-600/20 rounded-xl flex items-center justify-center">
+                  <Target className="w-5 h-5 text-purple-400" />
+                </div>
+                <h3 className="text-lg font-bold text-white">توقعات المباراة</h3>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2 text-sm">
+                    <span className="text-slate-400">فوز باريس سان جيرمان</span>
+                    <span className="text-white font-bold">35%</span>
+                  </div>
+                  <div className="w-full h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-blue-500 to-blue-600" style={{width: '35%'}}></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2 text-sm">
+                    <span className="text-slate-400">التعادل</span>
+                    <span className="text-white font-bold">20%</span>
+                  </div>
+                  <div className="w-full h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-slate-500 to-slate-600" style={{width: '20%'}}></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2 text-sm">
+                    <span className="text-slate-400">فوز بايرن ميونخ</span>
+                    <span className="text-white font-bold">45%</span>
+                  </div>
+                  <div className="w-full h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-red-500 to-red-600" style={{width: '45%'}}></div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-800/40 rounded-xl p-4 border border-slate-700/30 mt-4">
+                  <h4 className="text-white font-bold text-sm mb-2">التوقعات الإحصائية</h4>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400">احتمال أكثر من 2.5 هدف</span>
+                      <span className="text-emerald-400 font-bold">78%</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400">احتمال تسجيل الفريقين</span>
+                      <span className="text-emerald-400 font-bold">71%</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400">متوسط الأهداف المتوقعة</span>
+                      <span className="text-white font-bold">3.2 هدف</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="border-t border-gray-800/50 bg-[#0a0f0a]/80 backdrop-blur-xl mt-12">
-        <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="text-center md:text-left">
-              <p className="text-gray-500 text-sm">© 2024 SportsStream Premium. All rights reserved.</p>
-              <p className="text-gray-600 text-xs mt-1">Experience sports like never before</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <button className="text-gray-400 hover:text-white text-sm transition-colors">
-                Terms
-              </button>
-              <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
-              <button className="text-gray-400 hover:text-white text-sm transition-colors">
-                Privacy
-              </button>
-              <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
-              <button className="text-gray-400 hover:text-white text-sm transition-colors">
-                Help
-              </button>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

@@ -1,14 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Play, Menu, X, Bell, User, Search, ChevronDown, Trophy, Target, Calendar, Shield, Sparkles, Zap, TrendingUp, Star, Clock } from "lucide-react";
+import { Play, Menu, X, Search, Sparkles, Calendar, Target, Shield, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 export default function ProfessionalNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [showUserMenu, setShowUserMenu] = useState(false);
   const [activeLink, setActiveLink] = useState("/");
 
   // Get current path and set active link on mount
@@ -26,18 +24,6 @@ export default function ProfessionalNavbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = () => {
-      setShowNotifications(false);
-      setShowUserMenu(false);
-    };
-    if (showNotifications || showUserMenu) {
-      document.addEventListener("click", handleClickOutside);
-      return () => document.removeEventListener("click", handleClickOutside);
-    }
-  }, [showNotifications, showUserMenu]);
-
   type NavLink = {
     href: string;
     label: string;
@@ -50,12 +36,6 @@ export default function ProfessionalNavbar() {
     { href: "/schedule", label: "الجدول", icon: Calendar },
     { href: "/Upcomingmatches", label: "المباريات القادمة", icon: Target },
     { href: "/about", label: "عن المنصة", icon: Shield },
-  ];
-
-  const notifications = [
-    { id: 1, title: "برشلونة ضد ريال مدريد", subtitle: "تبدأ خلال 15 دقيقة", time: "الآن", type: "live", icon: Trophy },
-    { id: 2, title: "فوز ليكرز على سيلتيكس", subtitle: "النتيجة النهائية: 112-108", time: "منذ ساعتين", type: "result", icon: Star },
-    { id: 3, title: "مباراة جديدة مجدولة", subtitle: "مان يونايتد ضد ليفربول", time: "منذ 5 ساعات", type: "schedule", icon: Calendar },
   ];
 
   const handleNavigation = (href: string) => {
@@ -76,9 +56,9 @@ export default function ProfessionalNavbar() {
         {/* Animated gradient line at top */}
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-600 to-transparent opacity-50"></div>
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 lg:h-20">
-            {/* Enhanced Logo */}
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16 lg:h-20">
+            {/* Enhanced Logo - Mobile Optimized */}
             <Link
               href="/"
               onClick={(e) => {
@@ -86,27 +66,27 @@ export default function ProfessionalNavbar() {
                 handleNavigation("/");
                 window.location.href = "/";
               }}
-              className="flex items-center gap-3 group flex-shrink-0 cursor-pointer"
+              className="flex items-center gap-2 sm:gap-2.5 md:gap-3 group flex-shrink-0 cursor-pointer"
               aria-label="سبورت ستريم الرئيسية"
             >
               <div className="relative">
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
-                <div className="relative w-11 h-11 lg:w-12 lg:h-12 rounded-2xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-green-600 flex items-center justify-center shadow-xl shadow-emerald-600/40 group-hover:shadow-emerald-600/60 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
-                  <Play className="w-6 h-6 lg:w-7 lg:h-7 text-white" fill="currentColor" />
-                  <div className="absolute inset-0 rounded-2xl bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 blur-md sm:blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
+                <div className="relative w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11 lg:w-12 lg:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-green-600 flex items-center justify-center shadow-xl shadow-emerald-600/40 group-hover:shadow-emerald-600/60 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
+                  <Play className="w-5 h-5 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 text-white" fill="currentColor" />
+                  <div className="absolute inset-0 rounded-xl sm:rounded-2xl bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 </div>
               </div>
-              <div className="hidden sm:block">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-xl lg:text-2xl font-black text-white tracking-tight">
+              <div className="block">
+                <div className="flex items-baseline gap-0.5 sm:gap-1">
+                  <span className="text-base sm:text-lg md:text-xl lg:text-2xl font-black text-white tracking-tight leading-none">
                     سبورت
                   </span>
-                  <span className="text-xl lg:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-green-400">
+                  <span className="text-base sm:text-lg md:text-xl lg:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-green-400 leading-none">
                     ستريم
                   </span>
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mr-1"></div>
+                  <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-emerald-400 animate-pulse mr-0.5 sm:mr-1 mt-1"></div>
                 </div>
-                <div className="text-[10px] lg:text-xs text-gray-500 font-bold tracking-wider -mt-0.5 uppercase">
+                <div className="text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs text-gray-500 font-bold tracking-wider -mt-0.5 uppercase leading-none">
                   شبكة البث الرياضي
                 </div>
               </div>
@@ -149,8 +129,8 @@ export default function ProfessionalNavbar() {
             </div>
 
             {/* Right Side Actions */}
-            <div className="flex items-center gap-2 lg:gap-3">
-              {/* Enhanced Search */}
+            <div className="flex items-center gap-2 sm:gap-2.5 lg:gap-3">
+              {/* Enhanced Search - Desktop */}
               <div className="hidden lg:block relative">
                 {showSearch ? (
                   <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-2 duration-300">
@@ -183,149 +163,7 @@ export default function ProfessionalNavbar() {
                 )}
               </div>
 
-              {/* Enhanced Notifications */}
-              <div className="hidden lg:block relative">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowNotifications(!showNotifications);
-                    setShowUserMenu(false);
-                  }}
-                  className="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-gray-800/50 hover:border-emerald-600/50 text-gray-400 hover:text-emerald-400 transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-emerald-600/20 relative"
-                  aria-label="الإشعارات"
-                >
-                  <Bell className="w-4 h-4" />
-                  <span className="absolute -top-1 -left-1 w-5 h-5 bg-gradient-to-r from-red-600 to-rose-600 rounded-full flex items-center justify-center text-white text-[10px] font-black ring-2 ring-slate-950 shadow-lg">
-                    3
-                  </span>
-                </button>
-
-                {/* Notifications Dropdown */}
-                {showNotifications && (
-                  <div className="absolute left-0 top-14 w-96 bg-slate-900/98 backdrop-blur-2xl border border-gray-800/50 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div className="p-4 border-b border-gray-800/50 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Bell className="w-5 h-5 text-emerald-400" />
-                        <h3 className="font-black text-white text-base">الإشعارات</h3>
-                        <span className="px-2 py-0.5 bg-red-600 text-white text-xs font-black rounded-full">3</span>
-                      </div>
-                      <button className="text-xs text-emerald-400 hover:text-emerald-300 font-bold">
-                        تعليم الكل كمقروء
-                      </button>
-                    </div>
-                    <div className="max-h-96 overflow-y-auto">
-                      {notifications.map((notif) => {
-                        const NotifIcon = notif.icon;
-                        return (
-                          <div
-                            key={notif.id}
-                            className="p-4 hover:bg-slate-800/50 transition-colors border-b border-gray-800/30 last:border-0 cursor-pointer group"
-                          >
-                            <div className="flex gap-3">
-                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                                notif.type === 'live' ? 'bg-red-600/20 text-red-400' :
-                                notif.type === 'result' ? 'bg-emerald-600/20 text-emerald-400' :
-                                'bg-blue-600/20 text-blue-400'
-                              }`}>
-                                <NotifIcon className="w-5 h-5" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors mb-1">
-                                  {notif.title}
-                                </p>
-                                <p className="text-xs text-gray-400 mb-1">{notif.subtitle}</p>
-                                <div className="flex items-center gap-1 text-xs text-gray-500">
-                                  <Clock className="w-3 h-3" />
-                                  <span>{notif.time}</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div className="p-3 border-t border-gray-800/50">
-                      <button className="w-full py-2 text-sm font-bold text-emerald-400 hover:text-emerald-300 transition-colors">
-                        عرض جميع الإشعارات
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Enhanced User Menu */}
-              <div className="hidden lg:block relative">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowUserMenu(!showUserMenu);
-                    setShowNotifications(false);
-                  }}
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-gray-800/50 hover:border-emerald-600/50 text-gray-300 hover:text-white transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-emerald-600/20"
-                  aria-label="قائمة المستخدم"
-                >
-                  <div className="relative">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
-                      <User className="w-4 h-4 text-white" />
-                    </div>
-                    <div className="absolute -bottom-0.5 -left-0.5 w-3 h-3 bg-green-500 rounded-full ring-2 ring-slate-950"></div>
-                  </div>
-                  <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
-                </button>
-
-                {/* User Dropdown */}
-                {showUserMenu && (
-                  <div className="absolute left-0 top-14 w-64 bg-slate-900/98 backdrop-blur-2xl border border-gray-800/50 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div className="p-4 border-b border-gray-800/50">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
-                          <User className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-black text-white">أحمد محمد</p>
-                          <p className="text-xs text-gray-400">عضو مميز</p>
-                        </div>
-                      </div>
-                      <div className="flex gap-2 mt-3">
-                        <div className="flex-1 bg-slate-800/50 rounded-lg p-2 text-center">
-                          <p className="text-xs text-gray-400">شاهدت</p>
-                          <p className="text-sm font-black text-white">47</p>
-                        </div>
-                        <div className="flex-1 bg-slate-800/50 rounded-lg p-2 text-center">
-                          <p className="text-xs text-gray-400">المفضلة</p>
-                          <p className="text-sm font-black text-white">12</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="p-2">
-                      {[
-                        { label: "ملفي الشخصي", icon: User },
-                        { label: "قائمة المشاهدة", icon: Star },
-                        { label: "الإعدادات", icon: Shield },
-                        { label: "الإحصائيات", icon: TrendingUp },
-                      ].map((item) => {
-                        const ItemIcon = item.icon;
-                        return (
-                          <button
-                            key={item.label}
-                            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-300 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all"
-                          >
-                            <ItemIcon className="w-4 h-4" />
-                            <span>{item.label}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <div className="p-2 border-t border-gray-800/50">
-                      <button className="w-full px-3 py-2.5 text-sm font-bold text-red-400 hover:text-red-300 hover:bg-red-950/30 rounded-lg transition-all">
-                        تسجيل الخروج
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Enhanced Subscribe Button */}
+              {/* Enhanced Subscribe Button - Responsive */}
               <a
                 href="/subscribe"
                 onClick={(e) => {
@@ -333,22 +171,23 @@ export default function ProfessionalNavbar() {
                   handleNavigation("/subscribe");
                   window.location.href = "/subscribe";
                 }}
-                className="hidden lg:flex items-center gap-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white px-6 py-2.5 rounded-xl text-sm font-black transition-all duration-300 shadow-xl shadow-emerald-600/30 hover:shadow-emerald-600/50 hover:scale-105 active:scale-95 relative overflow-hidden group cursor-pointer"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 md:gap-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white px-3 sm:px-4 md:px-5 lg:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-black transition-all duration-300 shadow-lg sm:shadow-xl shadow-emerald-600/30 hover:shadow-emerald-600/50 hover:scale-105 active:scale-95 relative overflow-hidden group cursor-pointer whitespace-nowrap"
               >
                 <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                <Sparkles className="w-4 h-4 relative z-10" />
-                <span className="relative z-10">اشترك الآن</span>
-                <div className="w-2 h-2 rounded-full bg-white/90 animate-pulse relative z-10"></div>
+                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 relative z-10 flex-shrink-0" />
+                <span className="relative z-10 hidden xs:inline">اشترك الآن</span>
+                <span className="relative z-10 xs:hidden">اشترك</span>
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white/90 animate-pulse relative z-10 flex-shrink-0"></div>
               </a>
 
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="lg:hidden flex items-center justify-center w-10 h-10 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-gray-800/50 hover:border-emerald-600/50 text-gray-300 hover:text-white transition-all duration-300 hover:scale-110 shadow-lg"
+                className="lg:hidden flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-gray-800/50 hover:border-emerald-600/50 text-gray-300 hover:text-white transition-all duration-300 hover:scale-110 shadow-lg"
                 aria-label={isMenuOpen ? "إغلاق القائمة" : "فتح القائمة"}
                 aria-expanded={isMenuOpen}
               >
-                {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                {isMenuOpen ? <X className="w-4 h-4 sm:w-5 sm:h-5" /> : <Menu className="w-4 h-4 sm:w-5 sm:h-5" />}
               </button>
             </div>
           </div>
@@ -376,25 +215,25 @@ export default function ProfessionalNavbar() {
 
         {/* Menu Panel */}
         <div
-          className={`absolute top-16 left-0 right-0 bottom-0 bg-slate-950/98 backdrop-blur-2xl border-t border-gray-800/50 overflow-y-auto transition-transform duration-500 ${
+          className={`absolute top-14 sm:top-16 left-0 right-0 bottom-0 bg-slate-950/98 backdrop-blur-2xl border-t-2 border-gray-700/50 overflow-y-auto transition-transform duration-500 ${
             isMenuOpen ? "translate-y-0" : "-translate-y-full"
           }`}
         >
-          <div className="px-4 py-6 space-y-6 max-w-7xl mx-auto">
+          <div className="px-4 sm:px-6 py-5 sm:py-6 space-y-5 sm:space-y-6 max-w-7xl mx-auto">
             {/* Enhanced Search - Mobile */}
-            <div className="pb-6 border-b border-gray-800/50">
+            <div className="pb-5 sm:pb-6 border-b-2 border-gray-700/50">
               <div className="relative">
-                <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-400" />
+                <Search className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
                 <input
                   type="text"
                   placeholder="ابحث عن مباريات، فرق، دوريات..."
-                  className="w-full pr-12 pl-4 py-4 bg-slate-900/90 border-2 border-gray-800/50 focus:border-emerald-600/60 rounded-2xl text-base text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 shadow-lg"
+                  className="w-full pr-10 sm:pr-12 pl-3 sm:pl-4 py-3 sm:py-4 bg-slate-900/90 border-2 border-gray-700/50 focus:border-emerald-600/60 rounded-xl sm:rounded-2xl text-sm sm:text-base text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 shadow-lg"
                 />
               </div>
             </div>
 
             {/* Navigation Links - Mobile */}
-            <div className="space-y-2">
+            <div className="space-y-2 sm:space-y-3">
               {navLinks.map((link, idx) => {
                 const Icon = link.icon;
                 const isActive = activeLink === link.href;
@@ -407,28 +246,28 @@ export default function ProfessionalNavbar() {
                       handleNavigation(link.href);
                       window.location.href = link.href;
                     }}
-                    className={`flex items-center justify-between px-4 py-4 rounded-2xl transition-all duration-300 cursor-pointer ${
+                    className={`flex items-center justify-between px-3 sm:px-4 py-3 sm:py-4 rounded-xl sm:rounded-2xl transition-all duration-300 cursor-pointer ${
                       isActive
-                        ? "bg-gradient-to-r from-emerald-600/20 to-green-600/20 border-2 border-emerald-600/40 text-white"
-                        : "bg-slate-900/60 border-2 border-gray-800/50 text-gray-300 hover:text-white hover:border-emerald-600/30"
+                        ? "bg-gradient-to-r from-emerald-600/20 to-green-600/20 border-2 border-emerald-600/40 text-white shadow-lg shadow-emerald-600/20"
+                        : "bg-slate-900/60 border-2 border-gray-700/50 text-gray-300 hover:text-white hover:border-emerald-600/30"
                     }`}
                     style={{ animationDelay: `${idx * 75}ms` }}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl flex items-center justify-center ${
                         isActive ? "bg-emerald-600/30" : "bg-slate-800/50"
                       }`}>
                         <Icon className={`w-5 h-5 ${isActive ? "text-emerald-400" : "text-gray-400"}`} />
                       </div>
-                      <span className="text-base font-bold">{link.label}</span>
+                      <span className="text-sm sm:text-base font-bold">{link.label}</span>
                     </div>
                     {link.badge ? (
-                      <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-600 text-white text-xs font-black">
-                        <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></div>
+                      <span className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-red-600 text-white text-[10px] sm:text-xs font-black">
+                        <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-white animate-pulse"></div>
                         {link.badge}
                       </span>
                     ) : (
-                      <ChevronDown className={`w-5 h-5 -rotate-90 transition-colors ${
+                      <ChevronRight className={`w-4 h-4 sm:w-5 sm:h-5 transition-colors ${
                         isActive ? "text-emerald-400" : "text-gray-600"
                       }`} />
                     )}
@@ -437,43 +276,29 @@ export default function ProfessionalNavbar() {
               })}
             </div>
 
-            {/* Quick Actions - Mobile */}
-            <div className="pt-6 border-t border-gray-800/50 space-y-3">
-              <button className="w-full flex items-center gap-4 px-4 py-4 bg-slate-900/60 border-2 border-gray-800/50 hover:border-emerald-600/30 rounded-2xl transition-all text-gray-300 hover:text-white">
-                <div className="relative w-11 h-11 rounded-xl bg-slate-800/50 flex items-center justify-center">
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute -top-1 -left-1 w-5 h-5 bg-red-600 rounded-full flex items-center justify-center text-white text-[10px] font-black ring-2 ring-slate-950">
-                    3
-                  </span>
+            {/* CTA Section - Mobile */}
+            <div className="pt-5 sm:pt-6 border-t-2 border-gray-700/50">
+              <div className="bg-gradient-to-br from-slate-900/80 to-gray-900/80 backdrop-blur-sm border-2 border-emerald-600/30 rounded-xl sm:rounded-2xl p-4 sm:p-5 text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 mb-3 sm:mb-4 shadow-lg">
+                  <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                 </div>
-                <span className="text-base font-bold">الإشعارات</span>
-              </button>
-
-              <button className="w-full flex items-center gap-4 px-4 py-4 bg-slate-900/60 border-2 border-gray-800/50 hover:border-emerald-600/30 rounded-2xl transition-all text-gray-300 hover:text-white">
-                <div className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
-                  <User className="w-5 h-5 text-white" />
-                  <div className="absolute -bottom-0.5 -left-0.5 w-3 h-3 bg-green-500 rounded-full ring-2 ring-slate-950"></div>
-                </div>
-                <div className="text-left">
-                  <p className="text-base font-bold">أحمد محمد</p>
-                  <p className="text-xs text-gray-500">عرض الملف الشخصي</p>
-                </div>
-              </button>
-
-              <a
-                href="/subscribe"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleNavigation("/subscribe");
-                  window.location.href = "/subscribe";
-                }}
-                className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white px-6 py-5 rounded-2xl text-base font-black transition-all duration-300 shadow-2xl shadow-emerald-600/40 hover:scale-[1.02] active:scale-95 relative overflow-hidden group cursor-pointer"
-              >
-                <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                <Sparkles className="w-5 h-5 relative z-10" />
-                <span className="relative z-10">اشترك الآن</span>
-                <div className="w-2 h-2 rounded-full bg-white/90 animate-pulse relative z-10"></div>
-              </a>
+                <h3 className="text-base sm:text-lg font-bold text-white mb-1 sm:mb-2">استمتع بتجربة مميزة</h3>
+                <p className="text-xs sm:text-sm text-gray-400 mb-4 sm:mb-5">احصل على وصول غير محدود لجميع المباريات</p>
+                <a
+                  href="/subscribe"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNavigation("/subscribe");
+                    window.location.href = "/subscribe";
+                  }}
+                  className="w-full inline-flex items-center justify-center gap-2 sm:gap-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white px-5 sm:px-6 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base font-black transition-all duration-300 shadow-xl shadow-emerald-600/40 hover:scale-[1.02] active:scale-95 relative overflow-hidden group cursor-pointer"
+                >
+                  <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 relative z-10" />
+                  <span className="relative z-10">اشترك الآن</span>
+                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white/90 animate-pulse relative z-10"></div>
+                </a>
+              </div>
             </div>
           </div>
         </div>
