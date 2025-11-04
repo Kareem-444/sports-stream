@@ -21,7 +21,7 @@ export default function ProfessionalLiveStreamViewer() {
   const [viewerCount, setViewerCount] = useState(127543);
   const [matchTime, setMatchTime] = useState("45:00");
 
-  const streamUrl = "https://1player.baselalsharef.com/albaplayer/bein1/?serv=0";
+  const streamUrl = "https://pl.yalashoot.xyz/albaplayer/bein3/?serv=0";
 
   useEffect(() => {
     const interval = setInterval(() => {
